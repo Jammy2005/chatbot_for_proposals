@@ -6,13 +6,20 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     /* Reset & Base Styles */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     html, body {
       height: 100%;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background-color: #f7f7f7;
     }
-    body { display: flex; overflow: hidden; }
+    body {
+      display: flex;
+      overflow: hidden;
+    }
     
     /* Sidebar */
     #sidebar {
@@ -43,8 +50,13 @@
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
     }
-    .sidebar-button:hover { background-color: #0056b3; }
-    #conversation-list { flex-grow: 1; overflow-y: auto; }
+    .sidebar-button:hover {
+      background-color: #0056b3;
+    }
+    #conversation-list {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
     .conversation-item {
       width: 100%;
       text-align: left;
@@ -56,7 +68,9 @@
       cursor: pointer;
       transition: background-color 0.2s ease;
     }
-    .conversation-item:hover { background-color: #ececec; }
+    .conversation-item:hover {
+      background-color: #ececec;
+    }
     .conversation-item.active {
       background-color: #d0eaff;
       border-color: #80bdff;
@@ -68,6 +82,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      padding: 10px;
     }
     #chat-window {
       flex-grow: 1;
@@ -75,8 +90,11 @@
       overflow-y: auto;
       background-color: #fff;
       border-left: 1px solid #e5e5e5;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
       scroll-behavior: smooth;
       position: relative;
+      border-radius: 4px;
+      margin-bottom: 10px;
     }
     .placeholder {
       color: #aaa;
@@ -92,6 +110,7 @@
       max-width: 80%;
       overflow-wrap: break-word;
       word-wrap: break-word;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     .user {
       background-color: #e9f7ff;
@@ -111,6 +130,9 @@
       padding: 15px 20px;
       background-color: #fff;
       border-top: 1px solid #e5e5e5;
+      justify-content: flex-end;  /* Right-align the chat form */
+      border-radius: 4px;
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
     }
     #message-input {
       flex-grow: 1;
@@ -130,7 +152,9 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-    #chat-form button:hover { background-color: #0056b3; }
+    #chat-form button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>

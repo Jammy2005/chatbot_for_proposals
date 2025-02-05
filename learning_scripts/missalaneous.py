@@ -87,15 +87,22 @@ from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_ollama.llms import OllamaLLM
 
 load_dotenv()
 
-llm = ChatOpenAI(model = "gpt-4o")
+# llm = ChatOpenAI(model = "gpt-4o")
+llm = OllamaLLM(model="deepseek-r1:1.5b")
 
 def chatbot(state: MessagesState):
+    # print("XXXXXXXXXXXXX")
     response = llm.invoke(state["messages"])
-    state["messages"].append(response)
+    # print(response)
+    state["messages"].append(AIMessage(content = response))
+    # print(state)
     return {"messages": state["messages"]}
+
+
     
 
 builder = StateGraph(MessagesState)
@@ -110,17 +117,41 @@ graph = builder.compile(checkpointer = memory)
 sys_msg = [SystemMessage(content = "You are a helpful assistant!")]
 initial_state = {"messages": sys_msg}
 
-messages = HumanMessage(content = "suggest 10 good reads")
+messages = HumanMessage(content = "hi!")
 initial_state["messages"].append(messages)
 
-print (initial_state)
+# print (initial_state)
+
+messages = [HumanMessage(content="hi")]
 
 config = {"configurable": {"thread_id": "1"}}
-print ("user: ",initial_state["messages"][-1].content)
 
-for data, stream_mode in graph.stream(initial_state, config=config, stream_mode="messages"):
-    if data.type == "AIMessageChunk":
-        print (data.content, end="")
+
+messages = graph.invoke({"messages": messages},config)
+for m in messages['messages']:
+    m.pretty_print()
+# messages["messages"][-1]
+    # pass
+
+
+# print ("user: ",initial_state["messages"][-1].content)
+
+# for event in graph.stream(initial_state, config=config, stream_mode="messages"):
+#         print ("ran once")
+
+# print("xxxxxxxxxxxxxxxx")
+# print(initial_state["messages"])
+
+# for data, stream_mode in graph.stream(initial_state, config=config, stream_mode="messages"):
+#     if data.type == "AIMessageChunk":
+#         print (data.content, end="")
+    
+    
+    
+    
+    
+    
+    
     
 # for data, stream_mode in graph.stream(initial_state, config=config, stream_mode="messages"):
 #     if str(type(data)) == "<class 'langchain_core.messages.ai.AIMessageChunk'>":

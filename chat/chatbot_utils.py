@@ -11,7 +11,7 @@ load_dotenv()
 
 # Initialize the LLM (using GPT-4 in your case)
 # llm = ChatOpenAI(model="gpt-4o")
-llm = OllamaLLM(model="deepseek-r1:7b")
+llm = OllamaLLM(model="deepseek-r1:1.5b")
 # If needed, you could swap in OllamaLLM.
 
 def chatbot(state: MessagesState):
@@ -27,4 +27,4 @@ def create_graph():
     builder.add_edge("chatbot", END)
     memory = MemorySaver()
     graph = builder.compile(checkpointer=memory)
-    return graph  # Removed the trailing comma
+    return graph  
