@@ -41,7 +41,7 @@
         /* Conversation List Styles */
         #conversation-list {
             margin-top: 10px;
-            max-height: 60vh;  /* Maximum height before scrolling */
+            max-height: 60vh;
             overflow-y: auto;
         }
         .conversation-item {
@@ -145,7 +145,7 @@
         const newConvoBtn = document.getElementById('new-convo-btn');
         const conversationList = document.getElementById('conversation-list');
 
-        // Append a message to the chat window using marked.js to convert Markdown to HTML.
+        // Append a message to the chat window (using Marked.js to render Markdown).
         function appendMessage(role, markdownText) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', role);
@@ -154,7 +154,15 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Handle sending of new chat messages.
+        // Populate the chat window with an array of conversation messages.
+        function populateChatWindow(conversation) {
+            chatWindow.innerHTML = "";
+            conversation.forEach(message => {
+                appendMessage(message.role, message.content);
+            });
+        }
+
+        // Send a new chat message.
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const inputField = document.getElementById('message-input');
@@ -199,9 +207,18 @@
             })
             .then(response => response.json())
             .then(data => {
-                if(data.status) {
-                    // Clear the chat window to start fresh.
+                if (data.status) {
+                    // Clear the chat window and show the initial system prompt.
                     chatWindow.innerHTML = "";
+                    appendMessage('assistant', "You are a helpful assistant!");
+                    // If the new conversation saved the old one, update the sidebar.
+                    if (data.saved) {
+                        const newButton = document.createElement('button');
+                        newButton.classList.add('conversation-item');
+                        newButton.setAttribute('data-thread-id', data.saved.thread_id);
+                        newButton.textContent = "Conversation from " + data.saved.created_at;
+                        conversationList.insertBefore(newButton, conversationList.firstChild);
+                    }
                 }
             })
             .catch(error => {
@@ -209,9 +226,9 @@
             });
         });
 
-        // Load a previous conversation when a conversation item is clicked.
+        // Load a previous conversation when its button is clicked.
         conversationList.addEventListener('click', function(e) {
-            if(e.target && e.target.classList.contains('conversation-item')) {
+            if (e.target && e.target.classList.contains('conversation-item')) {
                 const threadId = e.target.getAttribute('data-thread-id');
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 fetch("load_conversation/" + threadId + "/", {
@@ -220,9 +237,8 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if(data.status) {
-                        // Reload the page to load the selected conversation.
-                        window.location.reload();
+                    if (data.status && data.conversation) {
+                        populateChatWindow(data.conversation);
                     }
                 })
                 .catch(error => {
