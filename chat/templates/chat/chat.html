@@ -242,7 +242,10 @@
       })
       .then(response => response.json())
       .then(data => {
+        console.log("Received JSON:", data);
         if (data.response) {
+          console.log("Received JSON:", data.response);
+            
           appendMessage('assistant', data.response);
         } else if (data.error) {
           appendMessage('assistant', "Error: " + data.error);

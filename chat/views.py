@@ -32,11 +32,15 @@ def chat_view(request):
             request.session["thread_id"] = thread_id
         config = {"configurable": {"thread_id": thread_id}}
         response_text = ""
-        for data, stream_mode in graph.stream({"messages": messages}, config=config, stream_mode="messages"):
-            if data.type == "AIMessageChunk":
-                response_text += data.content
+        # for data, stream_mode in graph.stream({"messages": messages}, config=config, stream_mode="messages"):
+        #     if data.type == "AIMessageChunk":
+        #         response_text += data.content
+        messages = graph.invoke({"messages": messages},config)
+        response_text = messages['messages'][-1].content
+        print(response_text)
         conversation.append({"role": "assistant", "content": response_text})
         request.session["conversation"] = conversation
+        
         return JsonResponse({"response": response_text})
     else:
         # GET request: initialize thread_id if missing
