@@ -57,6 +57,10 @@
       transition: background-color 0.2s ease;
     }
     .conversation-item:hover { background-color: #ececec; }
+    .conversation-item.active {
+      background-color: #d0eaff;
+      border-color: #80bdff;
+    }
     
     /* Main Chat Area */
     #main {
@@ -101,6 +105,7 @@
     }
     
     /* Chat Form */
+    .hidden { display: none; }
     #chat-form {
       display: flex;
       padding: 15px 20px;
@@ -145,19 +150,18 @@
   
   <div id="main">
     <div id="chat-window">
-      {% if current_convo and current_convo|length > 1 %}
-        <!-- If a conversation exists in session, render it -->
+      {% if active_chat %}
         {% for message in current_convo %}
           <div class="message {{ message.role }}">
             {{ message.content|safe }}
           </div>
         {% endfor %}
       {% else %}
-        <!-- Otherwise, show a friendly placeholder -->
         <div class="placeholder">Click "+ New Conversation" to start chatting.</div>
       {% endif %}
     </div>
-    <form id="chat-form" method="post">
+    <!-- Chat form is hidden on initial load (no active chat) -->
+    <form id="chat-form" method="post" class="{% if not active_chat %}hidden{% endif %}">
       {% csrf_token %}
       <input type="text" name="message" id="message-input" placeholder="Type your message..." autocomplete="off" required/>
       <button type="submit">Send</button>
@@ -170,12 +174,11 @@
     const newConvoBtn = document.getElementById('new-convo-btn');
     const conversationList = document.getElementById('conversation-list');
   
-    // Append a message to the chat window (using marked.js to render Markdown)
+    // Append a message to the chat window (using Marked.js to render Markdown)
     function appendMessage(role, markdownText) {
       // Remove any placeholder if present.
       const placeholder = document.querySelector('.placeholder');
       if (placeholder) placeholder.remove();
-  
       const msgDiv = document.createElement('div');
       msgDiv.classList.add('message', role);
       msgDiv.innerHTML = marked.parse(markdownText);
@@ -191,7 +194,13 @@
       });
     }
   
-    // Send a new chat message
+    // Helper: Remove "active" class from all conversation items.
+    function clearActiveSidebar() {
+      const items = document.querySelectorAll('.conversation-item');
+      items.forEach(item => item.classList.remove('active'));
+    }
+  
+    // Send a new chat message.
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       const inputField = document.getElementById('message-input');
@@ -221,7 +230,7 @@
       });
     });
   
-    // Handle the new conversation button click:
+    // Handle the new conversation button click.
     newConvoBtn.addEventListener('click', function() {
       console.log("New conversation button clicked.");
       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -237,17 +246,19 @@
       .then(data => {
         console.log("Response from new_conversation:", data);
         if (data.status === "new conversation started") {
-          // Clear the chat window and load the initial system prompt.
+          // Clear the chat window and load the system prompt.
           chatWindow.innerHTML = "";
           appendMessage('assistant', "You are a helpful assistant!");
-          // Also update the sidebar with the saved conversation button if available.
-          if (data.saved) {
-            const newButton = document.createElement('button');
-            newButton.classList.add('conversation-item');
-            newButton.setAttribute('data-thread-id', data.saved.thread_id);
-            newButton.textContent = "Conversation from " + data.saved.created_at;
-            conversationList.insertBefore(newButton, conversationList.firstChild);
-          }
+          // Unhide the chat form.
+          form.classList.remove('hidden');
+          // Update the sidebar:
+          clearActiveSidebar();
+          // Create a new conversation item for the new active conversation.
+          const newButton = document.createElement('button');
+          newButton.classList.add('conversation-item', 'active');
+          newButton.setAttribute('data-thread-id', data.new.thread_id);
+          newButton.textContent = "Conversation from " + data.new.created_at;
+          conversationList.insertBefore(newButton, conversationList.firstChild);
         } else {
           console.error("Unexpected response from new_conversation:", data);
         }
@@ -270,6 +281,11 @@
         .then(data => {
           if (data.status && data.conversation) {
             populateChatWindow(data.conversation);
+            // Update sidebar active state.
+            clearActiveSidebar();
+            e.target.classList.add('active');
+            // Unhide chat form.
+            form.classList.remove('hidden');
           }
         })
         .catch(error => {

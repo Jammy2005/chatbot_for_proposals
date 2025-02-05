@@ -9,8 +9,8 @@ from langchain_ollama.llms import OllamaLLM
 load_dotenv()
 
 # Model to use: 
-# llm = OllamaLLM(model="deepseek-r1:7b")
-llm = ChatOpenAI(model = "gpt-4o")
+llm = OllamaLLM(model="deepseek-r1:7b")
+# llm = ChatOpenAI(model = "gpt-4o")
 
 # Chatbot Node
 def chatbot(state: MessagesState):
