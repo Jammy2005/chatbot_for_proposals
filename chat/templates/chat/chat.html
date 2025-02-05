@@ -5,11 +5,12 @@
     <title>Internal Chatbot</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* Reset and basic styling */
+        /* Reset & Base Styles */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: Arial, sans-serif; background-color: #f0f2f5; }
         body { display: flex; }
-        /* Sidebar styling */
+
+        /* Sidebar Styles */
         #sidebar {
             background-color: #fff;
             width: 250px;
@@ -17,29 +18,54 @@
             padding: 20px;
             overflow-y: auto;
         }
-        #sidebar h2 { font-size: 20px; margin-bottom: 15px; color: #333; }
+        #sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
         .sidebar-button {
             display: block;
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             background-color: #0277bd;
             color: #fff;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            transition: background-color 0.2s ease;
         }
         .sidebar-button:hover { background-color: #01579b; }
-        .conversation-item {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            font-size: 14px;
+
+        /* Conversation List Styles */
+        #conversation-list {
+            margin-top: 10px;
+            max-height: 60vh;  /* Maximum height before scrolling */
+            overflow-y: auto;
         }
-        .conversation-item:hover { background-color: #f5f5f5; }
-        /* Main chat area */
-        #main { flex-grow: 1; display: flex; flex-direction: column; }
+        .conversation-item {
+            width: 100%;
+            background-color: #f9f9f9;
+            border: none;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+        .conversation-item:hover {
+            background-color: #ececec;
+        }
+
+        /* Main Chat Area */
+        #main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
         #chat-window {
             flex-grow: 1;
             padding: 20px;
@@ -68,12 +94,27 @@
             background-color: #0277bd;
             color: #fff;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
         #chat-form button:hover { background-color: #01579b; }
-        /* Message styling */
-        .message { margin-bottom: 15px; padding: 10px; border-radius: 4px; line-height: 1.4; }
-        .user { background-color: #e1f5fe; color: #0277bd; text-align: right; }
-        .assistant { background-color: #f1f8e9; color: #33691e; text-align: left; }
+
+        /* Message Styling */
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        .user {
+            background-color: #e1f5fe;
+            color: #0277bd;
+            text-align: right;
+        }
+        .assistant {
+            background-color: #f1f8e9;
+            color: #33691e;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -82,9 +123,9 @@
         <button class="sidebar-button" id="new-convo-btn">+ New Conversation</button>
         <div id="conversation-list">
             {% for chat in previous_chats %}
-                <div class="conversation-item" data-thread-id="{{ chat.thread_id }}">
+                <button class="conversation-item" data-thread-id="{{ chat.thread_id }}">
                     Conversation from {{ chat.created_at|date:"M d, Y H:i" }}
-                </div>
+                </button>
             {% endfor %}
         </div>
     </div>
@@ -104,7 +145,7 @@
         const newConvoBtn = document.getElementById('new-convo-btn');
         const conversationList = document.getElementById('conversation-list');
 
-        // Append a message to the chat window, converting Markdown to HTML with Marked.js.
+        // Append a message to the chat window using marked.js to convert Markdown to HTML.
         function appendMessage(role, markdownText) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', role);
@@ -113,7 +154,7 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Send new chat messages.
+        // Handle sending of new chat messages.
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const inputField = document.getElementById('message-input');
@@ -180,7 +221,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if(data.status) {
-                        // For simplicity, reload the page to load the selected conversation.
+                        // Reload the page to load the selected conversation.
                         window.location.reload();
                     }
                 })
