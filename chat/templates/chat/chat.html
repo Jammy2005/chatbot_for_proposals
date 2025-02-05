@@ -65,6 +65,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            min-width: 0; /* Allow the main area to shrink */
         }
         #chat-window {
             flex-grow: 1;
@@ -72,6 +73,7 @@
             overflow-y: auto;
             background-color: #fff;
             border-bottom: 1px solid #ccc;
+            min-width: 0; /* Allow the chat window to shrink */
         }
         #chat-form {
             display: flex;
@@ -104,6 +106,9 @@
             padding: 10px;
             border-radius: 4px;
             line-height: 1.4;
+            max-width: 100%;          /* Do not exceed container width */
+            overflow-wrap: break-word; /* Break long words */
+            word-break: break-word;    /* For extra safety */
         }
         .user {
             background-color: #e1f5fe;
