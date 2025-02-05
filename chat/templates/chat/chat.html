@@ -3,6 +3,7 @@
 <html>
 <head>
     <title>Internal Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,10 +41,14 @@
         const chatWindow = document.getElementById('chat-window');
 
         // Function to append messages to the chat window
-        function appendMessage(role, text) {
+        function appendMessage(role, markdownText) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', role);
-            msgDiv.textContent = role.charAt(0).toUpperCase() + role.slice(1) + ': ' + text;
+
+             // Convert markdown to HTML:
+            msgDiv.innerHTML = marked.parse(markdownText);
+
+            // msgDiv.textContent = role.charAt(0).toUpperCase() + role.slice(1) + ': ' + text;
             chatWindow.appendChild(msgDiv);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
