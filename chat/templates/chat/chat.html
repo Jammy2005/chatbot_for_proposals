@@ -1,262 +1,276 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Internal Chatbot</title>
-    <!-- Marked.js for rendering Markdown on the client-side -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        /* Reset & Base Styles */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; font-family: Arial, sans-serif; background-color: #f0f2f5; }
-        body { display: flex; }
-
-        /* Sidebar Styles */
-        #sidebar {
-            background-color: #fff;
-            width: 250px;
-            border-right: 1px solid #ccc;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #sidebar h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .sidebar-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            background-color: #0277bd;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s ease;
-        }
-        .sidebar-button:hover { background-color: #01579b; }
-
-        /* Conversation List Styles */
-        #conversation-list {
-            margin-top: 10px;
-            max-height: 60vh;  /* Allows scrolling when there are many items */
-            overflow-y: auto;
-        }
-        .conversation-item {
-            width: 100%;
-            background-color: #f9f9f9;
-            border: none;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 14px;
-            transition: background-color 0.2s ease;
-        }
-        .conversation-item:hover {
-            background-color: #ececec;
-        }
-
-        /* Main Chat Area */
-        #main {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0; /* Allow the main area to shrink */
-        }
-        #chat-window {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: #fff;
-            border-bottom: 1px solid #ccc;
-            min-width: 0; /* Allow the chat window to shrink */
-        }
-        #chat-form {
-            display: flex;
-            padding: 20px;
-            background-color: #fff;
-        }
-        #message-input {
-            flex-grow: 1;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        #chat-form button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            background-color: #0277bd;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        #chat-form button:hover { background-color: #01579b; }
-
-        /* Message Styling */
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 4px;
-            line-height: 1.4;
-            max-width: 100%;          /* Do not exceed container width */
-            overflow-wrap: break-word; /* Break long words */
-            word-break: break-word;    /* For extra safety */
-        }
-        .user {
-            background-color: #e1f5fe;
-            color: #0277bd;
-            text-align: right;
-        }
-        .assistant {
-            background-color: #f1f8e9;
-            color: #33691e;
-            text-align: left;
-        }
-    </style>
+  <title>Internal Chatbot</title>
+  <!-- Marked.js for rendering Markdown on the client-side -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f7f7f7;
+    }
+    body {
+      display: flex;
+      overflow: hidden;
+    }
+    
+    /* Sidebar */
+    #sidebar {
+      width: 260px;
+      background-color: #fff;
+      border-right: 1px solid #e5e5e5;
+      padding: 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+    .sidebar-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+    }
+    .sidebar-button:hover {
+      background-color: #0056b3;
+    }
+    #conversation-list {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    .conversation-item {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .conversation-item:hover {
+      background-color: #ececec;
+    }
+    
+    /* Main Chat Area */
+    #main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #chat-window {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #fff;
+      border-left: 1px solid #e5e5e5;
+      scroll-behavior: smooth;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      line-height: 1.5;
+      max-width: 80%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+    .user {
+      background-color: #e9f7ff;
+      align-self: flex-end;
+      color: #007bff;
+    }
+    .assistant {
+      background-color: #f1f8e9;
+      align-self: flex-start;
+      color: #33691e;
+    }
+    
+    /* Chat Form */
+    #chat-form {
+      display: flex;
+      padding: 15px 20px;
+      background-color: #fff;
+      border-top: 1px solid #e5e5e5;
+    }
+    #message-input {
+      flex-grow: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    #chat-form button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #chat-form button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <div id="sidebar">
-        <h2>Conversations</h2>
-        <!-- New Conversation Button -->
-        <button class="sidebar-button" id="new-convo-btn">+ New Conversation</button>
-        <!-- List of previously saved conversations -->
-        <div id="conversation-list">
-            {% for chat in previous_chats %}
-                <button class="conversation-item" data-thread-id="{{ chat.thread_id }}">
-                    Conversation from {{ chat.created_at|date:"M d, Y H:i" }}
-                </button>
-            {% endfor %}
-        </div>
+  <div id="sidebar">
+    <h2>Conversations</h2>
+    <!-- New Conversation Button -->
+    <button class="sidebar-button" id="new-convo-btn">+ New Conversation</button>
+    <!-- List of previously saved conversations -->
+    <div id="conversation-list">
+      {% for chat in previous_chats %}
+      <button class="conversation-item" data-thread-id="{{ chat.thread_id }}">
+        Conversation from {{ chat.created_at|date:"M d, Y H:i" }}
+      </button>
+      {% endfor %}
     </div>
+  </div>
 
-    <div id="main">
-        <div id="chat-window"></div>
-        <form id="chat-form" method="post">
-            {% csrf_token %}
-            <input type="text" name="message" id="message-input" placeholder="Type your message..." autocomplete="off" required/>
-            <button type="submit">Send</button>
-        </form>
-    </div>
+  <div id="main">
+    <div id="chat-window"></div>
+    <form id="chat-form" method="post">
+      {% csrf_token %}
+      <input type="text" name="message" id="message-input" placeholder="Type your message..." autocomplete="off" required/>
+      <button type="submit">Send</button>
+    </form>
+  </div>
 
-    <script>
-        const form = document.getElementById('chat-form');
-        const chatWindow = document.getElementById('chat-window');
-        const newConvoBtn = document.getElementById('new-convo-btn');
-        const conversationList = document.getElementById('conversation-list');
+  <script>
+    const form = document.getElementById('chat-form');
+    const chatWindow = document.getElementById('chat-window');
+    const newConvoBtn = document.getElementById('new-convo-btn');
+    const conversationList = document.getElementById('conversation-list');
 
-        // Append a message to the chat window (rendering Markdown to HTML)
-        function appendMessage(role, markdownText) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', role);
-            msgDiv.innerHTML = marked.parse(markdownText);
-            chatWindow.appendChild(msgDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+    // Append a message to the chat window (rendering Markdown to HTML)
+    function appendMessage(role, markdownText) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message', role);
+      msgDiv.innerHTML = marked.parse(markdownText);
+      chatWindow.appendChild(msgDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    // Populate the chat window with a conversation (an array of message objects)
+    function populateChatWindow(conversation) {
+      chatWindow.innerHTML = "";
+      conversation.forEach(message => {
+        appendMessage(message.role, message.content);
+      });
+    }
+
+    // Send a new chat message
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const inputField = document.getElementById('message-input');
+      const message = inputField.value;
+      appendMessage('user', message);
+      inputField.value = '';
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      fetch("", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": csrfToken
+        },
+        body: new URLSearchParams({ "message": message })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.response) {
+          appendMessage('assistant', data.response);
+        } else if (data.error) {
+          appendMessage('assistant', "Error: " + data.error);
         }
+      })
+      .catch(error => {
+        console.error("Error sending message:", error);
+        appendMessage('assistant', "An error occurred. Please try again.");
+      });
+    });
 
-        // Populate the chat window with a conversation (an array of message objects)
-        function populateChatWindow(conversation) {
-            chatWindow.innerHTML = "";
-            conversation.forEach(message => {
-                appendMessage(message.role, message.content);
-            });
+    // Handle the new conversation button click
+    newConvoBtn.addEventListener('click', function() {
+      console.log("New conversation button clicked.");
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      fetch("/new_conversation/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": csrfToken
+        },
+        body: new URLSearchParams({})
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Response from new_conversation:", data);
+        // If the response includes saved conversation info, update the sidebar
+        if (data.saved) {
+          const newButton = document.createElement('button');
+          newButton.classList.add('conversation-item');
+          newButton.setAttribute('data-thread-id', data.saved.thread_id);
+          newButton.textContent = "Conversation from " + data.saved.created_at;
+          conversationList.insertBefore(newButton, conversationList.firstChild);
+          // Inform the user that the conversation was saved
+          appendMessage('assistant', "Conversation saved. Click '+ New Conversation' again to start a new conversation.");
+        } else if (data.status === "new conversation started") {
+          // Clear the chat window and display the initial system prompt.
+          chatWindow.innerHTML = "";
+          appendMessage('assistant', "You are a helpful assistant!");
+        } else {
+          console.error("Unexpected response from new_conversation:", data);
         }
+      })
+      .catch(error => {
+        console.error("Error starting new conversation:", error);
+      });
+    });
 
-        // Send a new chat message
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const inputField = document.getElementById('message-input');
-            const message = inputField.value;
-            appendMessage('user', message);
-            inputField.value = '';
-
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            fetch("", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-CSRFToken": csrfToken
-                },
-                body: new URLSearchParams({ "message": message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.response) {
-                    appendMessage('assistant', data.response);
-                } else if (data.error) {
-                    appendMessage('assistant', "Error: " + data.error);
-                }
-            })
-            .catch(error => {
-                console.error("Error sending message:", error);
-                appendMessage('assistant', "An error occurred. Please try again.");
-            });
+    // Load a previous conversation when a conversation item is clicked.
+    conversationList.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('conversation-item')) {
+        const threadId = e.target.getAttribute('data-thread-id');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch("/load_conversation/" + threadId + "/", {
+          method: "POST",
+          headers: { "X-CSRFToken": csrfToken }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status && data.conversation) {
+            populateChatWindow(data.conversation);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading conversation:", error);
         });
-
-        // Start a new conversation
-        newConvoBtn.addEventListener('click', function() {
-            console.log("New conversation button clicked.");
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            fetch("/new_conversation/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-CSRFToken": csrfToken
-                },
-                body: new URLSearchParams({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Response from new_conversation:", data);
-                if (data.status) {
-                    // Clear the chat window and display the initial system prompt
-                    chatWindow.innerHTML = "";
-                    appendMessage('assistant', "You are a helpful assistant!");
-                    // Update the sidebar if a conversation was saved
-                    if (data.saved) {
-                        const newButton = document.createElement('button');
-                        newButton.classList.add('conversation-item');
-                        newButton.setAttribute('data-thread-id', data.saved.thread_id);
-                        newButton.textContent = "Conversation from " + data.saved.created_at;
-                        conversationList.insertBefore(newButton, conversationList.firstChild);
-                    }
-                } else {
-                    console.error("New conversation response missing status:", data);
-                }
-            })
-            .catch(error => {
-                console.error("Error starting new conversation:", error);
-            });
-        });
-
-        // Load a previous conversation when a conversation item is clicked
-        conversationList.addEventListener('click', function(e) {
-            if (e.target && e.target.classList.contains('conversation-item')) {
-                const threadId = e.target.getAttribute('data-thread-id');
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                fetch("/load_conversation/" + threadId + "/", {
-                    method: "POST",
-                    headers: { "X-CSRFToken": csrfToken }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status && data.conversation) {
-                        populateChatWindow(data.conversation);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error loading conversation:", error);
-                });
-            }
-        });
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
