@@ -1,3 +1,4 @@
+# chat/chatbot_utils.py
 import sys
 from langgraph.graph import MessagesState, StateGraph, START, END
 from dotenv import load_dotenv
@@ -6,12 +7,11 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 # from langchain_ollama.llms import OllamaLLM  # if needed
 
-# Load environment variables
 load_dotenv()
 
 # Initialize the LLM (using GPT-4 in your case)
 llm = ChatOpenAI(model="gpt-4o")
-# to use OllamaLLM, you could swap this out.
+# If needed, you could swap in OllamaLLM.
 
 def chatbot(state: MessagesState):
     response = llm.invoke(state["messages"])
@@ -26,4 +26,4 @@ def create_graph():
     builder.add_edge("chatbot", END)
     memory = MemorySaver()
     graph = builder.compile(checkpointer=memory)
-    return graph
+    return graph  # Removed the trailing comma

@@ -1,11 +1,12 @@
 # chat/views.py
-import uuid, datetime
+import uuid
 from django.shortcuts import render
 from django.http import JsonResponse
 from .chatbot_utils import create_graph
 from .models import ChatSession
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
+# Create the graph (make sure create_graph() returns the actual graph)
 graph = create_graph()
 
 def chat_view(request):
@@ -49,28 +50,50 @@ def chat_view(request):
         previous_chats = ChatSession.objects.order_by('-created_at')
         return render(request, "chat/chat.html", {"previous_chats": previous_chats})
 
+# chat/views.py
+
 def new_conversation(request):
     """
     Saves the current conversation (if any) and resets session data for a new chat.
     Returns JSON including info about the saved conversation so that the sidebar can update.
     """
     if request.method == "POST":
-        conversation = request.session.get("conversation")
-        thread_id = request.session.get("thread_id")
-        saved_data = None
-        # Only save if the conversation has more than just the system prompt.
-        if conversation and thread_id and len(conversation) > 1:
-            chat_session = ChatSession.objects.create(thread_id=thread_id, conversation=conversation)
-            saved_data = {
-                "thread_id": thread_id,
-                "created_at": chat_session.created_at.strftime("%b %d, %Y %H:%M")
-            }
-        # Reset the session conversation with the initial system prompt.
-        request.session["conversation"] = [{"role": "system", "content": "You are a helpful assistant!"}]
-        new_thread_id = str(uuid.uuid4())
-        request.session["thread_id"] = new_thread_id
-        return JsonResponse({"status": "new conversation started", "new_thread_id": new_thread_id, "saved": saved_data})
+        try:
+            conversation = request.session.get("conversation")
+            thread_id = request.session.get("thread_id")
+            saved_data = None
+            # Only save if the conversation contains more than the initial system message.
+            if conversation and thread_id and len(conversation) > 1:
+                # Check if this conversation hasn't already been saved.
+                if not ChatSession.objects.filter(thread_id=thread_id).exists():
+                    chat_session = ChatSession.objects.create(
+                        thread_id=thread_id, conversation=conversation
+                    )
+                    saved_data = {
+                        "thread_id": thread_id,
+                        "created_at": chat_session.created_at.strftime("%b %d, %Y %H:%M")
+                    }
+                else:
+                    # Optionally, update the existing conversation here if desired.
+                    # For now, we simply don't save a duplicate.
+                    pass
+
+            # Reset the conversation and generate a new thread ID in the session.
+            request.session["conversation"] = [{"role": "system", "content": "You are a helpful assistant!"}]
+            new_thread_id = str(uuid.uuid4())
+            request.session["thread_id"] = new_thread_id
+
+            return JsonResponse({
+                "status": "new conversation started",
+                "new_thread_id": new_thread_id,
+                "saved": saved_data
+            })
+        except Exception as e:
+            import traceback
+            print("Error in new_conversation:", traceback.format_exc())
+            return JsonResponse({"error": "Internal server error in new_conversation."}, status=500)
     return JsonResponse({"error": "POST request required."}, status=400)
+
 
 def load_conversation(request, thread_id):
     """

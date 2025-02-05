@@ -1,8 +1,8 @@
-<!-- chat/templates/chat/chat.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Internal Chatbot</title>
+    <!-- Marked.js for rendering Markdown on the client-side -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         /* Reset & Base Styles */
@@ -41,7 +41,7 @@
         /* Conversation List Styles */
         #conversation-list {
             margin-top: 10px;
-            max-height: 60vh;
+            max-height: 60vh;  /* Allows scrolling when there are many items */
             overflow-y: auto;
         }
         .conversation-item {
@@ -120,7 +120,9 @@
 <body>
     <div id="sidebar">
         <h2>Conversations</h2>
+        <!-- New Conversation Button -->
         <button class="sidebar-button" id="new-convo-btn">+ New Conversation</button>
+        <!-- List of previously saved conversations -->
         <div id="conversation-list">
             {% for chat in previous_chats %}
                 <button class="conversation-item" data-thread-id="{{ chat.thread_id }}">
@@ -145,7 +147,7 @@
         const newConvoBtn = document.getElementById('new-convo-btn');
         const conversationList = document.getElementById('conversation-list');
 
-        // Append a message to the chat window (using Marked.js to render Markdown).
+        // Append a message to the chat window (rendering Markdown to HTML)
         function appendMessage(role, markdownText) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', role);
@@ -154,7 +156,7 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Populate the chat window with an array of conversation messages.
+        // Populate the chat window with a conversation (an array of message objects)
         function populateChatWindow(conversation) {
             chatWindow.innerHTML = "";
             conversation.forEach(message => {
@@ -162,7 +164,7 @@
             });
         }
 
-        // Send a new chat message.
+        // Send a new chat message
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const inputField = document.getElementById('message-input');
@@ -189,15 +191,16 @@
                 }
             })
             .catch(error => {
-                console.error("Error:", error);
+                console.error("Error sending message:", error);
                 appendMessage('assistant', "An error occurred. Please try again.");
             });
         });
 
-        // Start a new conversation.
+        // Start a new conversation
         newConvoBtn.addEventListener('click', function() {
+            console.log("New conversation button clicked.");
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            fetch("new_conversation/", {
+            fetch("/new_conversation/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -207,11 +210,12 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log("Response from new_conversation:", data);
                 if (data.status) {
-                    // Clear the chat window and show the initial system prompt.
+                    // Clear the chat window and display the initial system prompt
                     chatWindow.innerHTML = "";
                     appendMessage('assistant', "You are a helpful assistant!");
-                    // If the new conversation saved the old one, update the sidebar.
+                    // Update the sidebar if a conversation was saved
                     if (data.saved) {
                         const newButton = document.createElement('button');
                         newButton.classList.add('conversation-item');
@@ -219,6 +223,8 @@
                         newButton.textContent = "Conversation from " + data.saved.created_at;
                         conversationList.insertBefore(newButton, conversationList.firstChild);
                     }
+                } else {
+                    console.error("New conversation response missing status:", data);
                 }
             })
             .catch(error => {
@@ -226,12 +232,12 @@
             });
         });
 
-        // Load a previous conversation when its button is clicked.
+        // Load a previous conversation when a conversation item is clicked
         conversationList.addEventListener('click', function(e) {
             if (e.target && e.target.classList.contains('conversation-item')) {
                 const threadId = e.target.getAttribute('data-thread-id');
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                fetch("load_conversation/" + threadId + "/", {
+                fetch("/load_conversation/" + threadId + "/", {
                     method: "POST",
                     headers: { "X-CSRFToken": csrfToken }
                 })
