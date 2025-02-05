@@ -6,20 +6,13 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     /* Reset & Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background-color: #f7f7f7;
     }
-    body {
-      display: flex;
-      overflow: hidden;
-    }
+    body { display: flex; overflow: hidden; }
     
     /* Sidebar */
     #sidebar {
@@ -50,13 +43,8 @@
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
     }
-    .sidebar-button:hover {
-      background-color: #0056b3;
-    }
-    #conversation-list {
-      flex-grow: 1;
-      overflow-y: auto;
-    }
+    .sidebar-button:hover { background-color: #0056b3; }
+    #conversation-list { flex-grow: 1; overflow-y: auto; }
     .conversation-item {
       width: 100%;
       text-align: left;
@@ -68,9 +56,7 @@
       cursor: pointer;
       transition: background-color 0.2s ease;
     }
-    .conversation-item:hover {
-      background-color: #ececec;
-    }
+    .conversation-item:hover { background-color: #ececec; }
     
     /* Main Chat Area */
     #main {
@@ -86,6 +72,13 @@
       background-color: #fff;
       border-left: 1px solid #e5e5e5;
       scroll-behavior: smooth;
+      position: relative;
+    }
+    .placeholder {
+      color: #aaa;
+      text-align: center;
+      margin-top: 40px;
+      font-size: 18px;
     }
     .message {
       margin-bottom: 15px;
@@ -132,9 +125,7 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-    #chat-form button:hover {
-      background-color: #0056b3;
-    }
+    #chat-form button:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
@@ -151,46 +142,62 @@
       {% endfor %}
     </div>
   </div>
-
+  
   <div id="main">
-    <div id="chat-window"></div>
+    <div id="chat-window">
+      {% if current_convo and current_convo|length > 1 %}
+        <!-- If a conversation exists in session, render it -->
+        {% for message in current_convo %}
+          <div class="message {{ message.role }}">
+            {{ message.content|safe }}
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- Otherwise, show a friendly placeholder -->
+        <div class="placeholder">Click "+ New Conversation" to start chatting.</div>
+      {% endif %}
+    </div>
     <form id="chat-form" method="post">
       {% csrf_token %}
       <input type="text" name="message" id="message-input" placeholder="Type your message..." autocomplete="off" required/>
       <button type="submit">Send</button>
     </form>
   </div>
-
+  
   <script>
     const form = document.getElementById('chat-form');
     const chatWindow = document.getElementById('chat-window');
     const newConvoBtn = document.getElementById('new-convo-btn');
     const conversationList = document.getElementById('conversation-list');
-
-    // Append a message to the chat window (rendering Markdown to HTML)
+  
+    // Append a message to the chat window (using marked.js to render Markdown)
     function appendMessage(role, markdownText) {
+      // Remove any placeholder if present.
+      const placeholder = document.querySelector('.placeholder');
+      if (placeholder) placeholder.remove();
+  
       const msgDiv = document.createElement('div');
       msgDiv.classList.add('message', role);
       msgDiv.innerHTML = marked.parse(markdownText);
       chatWindow.appendChild(msgDiv);
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
-
-    // Populate the chat window with a conversation (an array of message objects)
+  
+    // Populate the chat window with a conversation (array of message objects)
     function populateChatWindow(conversation) {
       chatWindow.innerHTML = "";
       conversation.forEach(message => {
         appendMessage(message.role, message.content);
       });
     }
-
+  
     // Send a new chat message
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       const inputField = document.getElementById('message-input');
       const message = inputField.value;
       appendMessage('user', message);
-      inputField.value = '';
+      inputField.value = "";
       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
       fetch("", {
         method: "POST",
@@ -213,8 +220,8 @@
         appendMessage('assistant', "An error occurred. Please try again.");
       });
     });
-
-    // Handle the new conversation button click
+  
+    // Handle the new conversation button click:
     newConvoBtn.addEventListener('click', function() {
       console.log("New conversation button clicked.");
       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -229,19 +236,18 @@
       .then(response => response.json())
       .then(data => {
         console.log("Response from new_conversation:", data);
-        // If the response includes saved conversation info, update the sidebar
-        if (data.saved) {
-          const newButton = document.createElement('button');
-          newButton.classList.add('conversation-item');
-          newButton.setAttribute('data-thread-id', data.saved.thread_id);
-          newButton.textContent = "Conversation from " + data.saved.created_at;
-          conversationList.insertBefore(newButton, conversationList.firstChild);
-          // Inform the user that the conversation was saved
-          appendMessage('assistant', "Conversation saved. Click '+ New Conversation' again to start a new conversation.");
-        } else if (data.status === "new conversation started") {
-          // Clear the chat window and display the initial system prompt.
+        if (data.status === "new conversation started") {
+          // Clear the chat window and load the initial system prompt.
           chatWindow.innerHTML = "";
           appendMessage('assistant', "You are a helpful assistant!");
+          // Also update the sidebar with the saved conversation button if available.
+          if (data.saved) {
+            const newButton = document.createElement('button');
+            newButton.classList.add('conversation-item');
+            newButton.setAttribute('data-thread-id', data.saved.thread_id);
+            newButton.textContent = "Conversation from " + data.saved.created_at;
+            conversationList.insertBefore(newButton, conversationList.firstChild);
+          }
         } else {
           console.error("Unexpected response from new_conversation:", data);
         }
@@ -250,7 +256,7 @@
         console.error("Error starting new conversation:", error);
       });
     });
-
+  
     // Load a previous conversation when a conversation item is clicked.
     conversationList.addEventListener('click', function(e) {
       if (e.target && e.target.classList.contains('conversation-item')) {
