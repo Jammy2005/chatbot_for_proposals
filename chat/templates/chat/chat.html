@@ -14,7 +14,8 @@
     html, body {
       height: 100%;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      background-color: #f7f7f7;
+      background-color: #121212; /* dark background */
+      color: #e0e0e0;
     }
     body {
       display: flex;
@@ -24,8 +25,8 @@
     /* Sidebar */
     #sidebar {
       width: 260px;
-      background-color: #fff;
-      border-right: 1px solid #e5e5e5;
+      background-color: #1e1e1e; /* dark sidebar background */
+      border-right: 1px solid #333;
       padding: 20px;
       overflow-y: auto;
       flex-shrink: 0;
@@ -35,13 +36,13 @@
     #sidebar h2 {
       font-size: 20px;
       margin-bottom: 20px;
-      color: #333;
+      color: #e0e0e0;
       text-align: center;
     }
     .sidebar-button {
       width: 100%;
       padding: 12px;
-      background-color: #007bff;
+      background-color: #007bff; /* keeping blue for action */
       color: #fff;
       border: none;
       border-radius: 4px;
@@ -62,18 +63,19 @@
       text-align: left;
       padding: 10px 12px;
       margin-bottom: 10px;
-      border: 1px solid #e5e5e5;
+      border: 1px solid #333;
       border-radius: 4px;
-      background-color: #f9f9f9;
+      background-color: #2a2a2a;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      color: #e0e0e0;
     }
     .conversation-item:hover {
-      background-color: #ececec;
+      background-color: #3a3a3a;
     }
     .conversation-item.active {
-      background-color: #d0eaff;
-      border-color: #80bdff;
+      background-color: #0056b3;
+      border-color: #007bff;
     }
     
     /* Main Chat Area */
@@ -83,14 +85,15 @@
       flex-direction: column;
       overflow: hidden;
       padding: 10px;
+      background-color: #121212;
     }
     #chat-window {
       flex-grow: 1;
       padding: 20px;
       overflow-y: auto;
-      background-color: #fff;
-      border-left: 1px solid #e5e5e5;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      background-color: #1e1e1e;
+      border-left: 1px solid #333;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
       scroll-behavior: smooth;
       border-radius: 4px;
       margin-bottom: 10px;
@@ -110,17 +113,17 @@
       max-width: 80%;
       overflow-wrap: break-word;
       word-wrap: break-word;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
     .user {
-      background-color: #e9f7ff;
+      background-color: #0a84ff;  /* a vivid blue for user messages */
       align-self: flex-end;
-      color: #007bff;
+      color: #fff;
     }
     .assistant {
-      background-color: #f1f8e9;
+      background-color: #333;
       align-self: flex-start;
-      color: #33691e;
+      color: #e0e0e0;
     }
     .think-icon {
       margin-right: 8px;
@@ -137,20 +140,22 @@
     #chat-form {
       display: flex;
       padding: 15px 20px;
-      background-color: #fff;
-      border-top: 1px solid #e5e5e5;
-      justify-content: flex-end; /* Right-align the form elements */
+      background-color: #1e1e1e;
+      border-top: 1px solid #333;
+      justify-content: flex-end;  /* right-align the form elements */
       border-radius: 4px;
-      box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.5);
     }
     #message-input {
       flex-grow: 1;
       padding: 10px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
       border-radius: 4px;
       margin-right: 10px;
-      text-align: right;  /* Align text to the right */
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      text-align: right;  /* right-align text */
     }
     #chat-form button {
       padding: 10px 20px;
@@ -252,7 +257,7 @@
         msgDiv.insertBefore(icon, msgDiv.firstChild);
       }
   
-      // Append the message to the chat window.
+      // Append the message container to the chat window.
       chatWindow.appendChild(msgDiv);
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
@@ -318,12 +323,12 @@
       .then(data => {
         console.log("Response from new_conversation:", data);
         if (data.status === "new conversation started") {
-          // Clear chat window and load the system prompt.
+          // Clear the chat window and load the system prompt.
           chatWindow.innerHTML = "";
           appendMessage('assistant', "You are a helpful assistant!");
           // Unhide the chat form.
           form.classList.remove('hidden');
-          // Update the sidebar: clear active state and add a new conversation button.
+          // Update the sidebar: clear active state and add a new conversation item.
           clearActiveSidebar();
           const newButton = document.createElement('button');
           newButton.classList.add('conversation-item', 'active');
@@ -339,7 +344,7 @@
       });
     });
   
-    // Load a conversation when a sidebar conversation item is clicked.
+    // Load a conversation when a conversation item is clicked.
     conversationList.addEventListener('click', function(e) {
       if (e.target && e.target.classList.contains('conversation-item')) {
         const threadId = e.target.getAttribute('data-thread-id');
