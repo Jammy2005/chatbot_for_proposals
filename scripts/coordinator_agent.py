@@ -9,21 +9,31 @@ from langgraph.checkpoint.memory import MemorySaver
 class State(MessagesState):
     db_results: list[str]
     
-def database_agent(question: str) -> str:
-    """Can communicate with the KPS internal website to query company specific information.
+def database_agent(args: dict) -> dict:
+    # Extract the question from args
+    question = args.get("question", "")
 
-    Args:
-        question: the query/question. Just plain text of what information needs to be extracted from the database.
-    """
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", question)
-    my_graph = create_graph()
-    # response = my_graph.invoke({"messages": question})
+    # Now do your normal process:
+    print("Processing question:", question)
+
+    my_graph = create_graph()  # your retrieval or DB logic
+
+    # Store the streamed messages in a list
+    result_messages = []
     for step in my_graph.stream(
         {"messages": [{"role": "user", "content": question}]},
         stream_mode="values",
     ):
         step["messages"][-1].pretty_print()
-    return {"messages" : AIMessage(content = "idfk")}
+        result_messages.append(step["messages"][-1])
+
+    # Return a valid dictionary
+    if not result_messages:
+        return {"messages": [AIMessage(content="No response from DB tool.")]}
+
+    return {"messages": result_messages}
+
+
 
 tools = [database_agent]
 llm = ChatOpenAI(model = "gpt-4o")
