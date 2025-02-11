@@ -102,8 +102,9 @@ tools.append(retriever_tool)
 agent_executor = create_react_agent(llm, tools, prompt=system_message)
 
 # question = "i am looking to allocate two of my employees to a new project where we need to design a NN that can recognize captchas. can u pls reccomend which empoyees i shoud use. "
-#question = " what is the relationship bw api's and enterprise service bus? can u reccomend an employee who could work on a project that involves enterprise service bus."
-question = " what project did karlos work on? "
+# question = " what is the relationship bw api's and enterprise service bus? can u reccomend an employee in the db who could work on a project that involves enterprise service bus."
+question = " Retrieve the list of people who worked on the AI chatbot project. "
+
 for step in agent_executor.stream(
     {"messages": [{"role": "user", "content": question}]},
     stream_mode="values",
