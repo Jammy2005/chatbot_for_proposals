@@ -1,0 +1,12 @@
+langchain_community
+typing-extensions
+python-dotenv
+langchain_openai
+langchain_ollama
+langchain
+langgraph
+mysql-connector-python
+pkg-config
+default-libmysqlclient-dev
+libmysqlclient-dev
+mysqlclient
