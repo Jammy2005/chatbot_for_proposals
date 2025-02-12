@@ -38,10 +38,10 @@ def create_graph():
     return graph
 
 
-graph = create_graph()
+# graph = create_graph()
 
-question = "current team members and their skills"
+# question = "current team members and their skills"
 
-ans = graph.invoke({"messages": [{"role": "user", "content": question}]}, config = config)
+# ans = graph.invoke({"messages": [{"role": "user", "content": question}]}, config = config)
 
-print(ans["messages"][-1].content)
+# print(ans["messages"][-1].content)

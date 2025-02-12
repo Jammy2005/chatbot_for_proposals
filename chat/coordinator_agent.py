@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 @tool
-def database_agent(question: dict) -> dict:
+def database_agent(question: str) -> str:
     """Can communicate with the KPS internal website to query company specific information.
 
     Args:
@@ -19,20 +19,17 @@ def database_agent(question: dict) -> dict:
     """
     db_agent_graph = create_graph()
     
-    ans = db_agent_graph.invoke({"messages": [{"role": "user", "content": question}]})
+    config = {"configurable": {"thread_id": "2"}}
+    
+    ans = db_agent_graph.invoke({"messages": [{"role": "user", "content": question}]}, config = config)
 
     response = (ans["messages"][-1].content)
     
-    print(response)
-    
     return response
     
-
 tools = [database_agent]
 llm = ChatOpenAI(model = "gpt-4o")
 llm_with_tools = llm.bind_tools(tools)
-
-sys_msg = SystemMessage(content = "You work at KPS(KAKA processing systems). You are a helpful assistant tasked with helping employees with whatever they need. You can use the tools as your disposable to gain insight and answer the with KPS specific knowledge.")
 
 def assistant(state: MessagesState):
     return {"messages" : llm_with_tools.invoke([sys_msg] + state["messages"])}
@@ -47,6 +44,7 @@ builder.add_conditional_edges("assistant", tools_condition)
 builder.add_edge("tools", "assistant")
 
 graph = builder.compile()
+sys_msg = SystemMessage(content = "You work at KPS(KAKA processing systems). You are a helpful assistant tasked with helping employees with whatever they need. You can use the tools as your disposable to gain insight and answer the with KPS specific knowledge.")
 
 messages = [HumanMessage(content="I am working on a project that requires making an RGB game. It is a three week long project. the game will have ai characters too, that have reasoning capabilities. can u pls give me a time line and plan aswell as suggest who i should allocate to this project?")]
 

@@ -1,7 +1,8 @@
 import uuid
 from django.shortcuts import render
 from django.http import JsonResponse
-from .chatbot_utils import create_graph
+# from .chatbot_utils import create_graph
+from .coordinator_agent import create_graph
 from .models import ChatSession
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from django.utils import timezone
