@@ -5,7 +5,7 @@ from langchain_ollama.llms import OllamaLLM
 from langchain import hub
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langgraph.prebuilt import create_react_agent
-from create_vector_store import retriever_tool
+from chat.create_vector_store import retriever_tool
 from langgraph.checkpoint.memory import MemorySaver
 
 

@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.graph import MessagesState
-from chatbot_utils import create_graph
+from chat.chatbot_utils import create_graph
 from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
@@ -27,7 +27,7 @@ def database_agent(question: str) -> str:
     -------
     response: str
         A natural langauge response of the relevent content qeured from the database
-        (e.g., "Maya Chen worked on the AI chatbot project.")
+        (e.g., "Ayesha Khan worked on the AI chatbot project.")
         
 
     Example Usage:
