@@ -7,6 +7,7 @@ from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
 from dotenv import load_dotenv
+from langgraph.prebuilt import create_react_agent
 
 load_dotenv()
 
@@ -80,20 +81,6 @@ for m in messages['messages']:
     m.pretty_print()
     # pass
     
-# memory = MemorySaver()
-# memory_graph = builder.compile(checkpointer = memory)
-
-# config = {"configurable": {"thread_id": "1"}}
-
-# messages = [HumanMessage(content = "My names James")]
-
-# messages = memory_graph.invoke({"messages": messages},config)
-# for m in messages['messages']:
-#     # m.pretty_print()
-#     pass
-    
-# messages = [HumanMessage(content="Whats my name?")]
-# messages = memory_graph.invoke({"messages": messages}, config)
-# for m in messages['messages']:
-#     # m.pretty_print()
-#     pass
+def create_graph():
+    graph = create_react_agent(llm, tools, prompt=system, checkpointer = memory)
+    return graph
