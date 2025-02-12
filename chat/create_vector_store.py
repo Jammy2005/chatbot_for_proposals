@@ -4,11 +4,17 @@ from langchain_community.utilities import SQLDatabase
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain.agents.agent_toolkits import create_retriever_tool
+from dotenv import load_dotenv
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
 
-
+load_dotenv()
 
 db = SQLDatabase.from_uri("mysql://root:Farheen2005@localhost:3306/kps_knowledge_base")
-embeddings = OllamaEmbeddings(model="llama3")
+# embeddings = OllamaEmbeddings(model="llama3")
+# vector_store = InMemoryVectorStore(embeddings)
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 vector_store = InMemoryVectorStore(embeddings)
 
 # Define the query_as_list function

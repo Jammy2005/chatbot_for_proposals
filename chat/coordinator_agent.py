@@ -5,35 +5,28 @@ from chatbot_utils import create_graph
 from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.tools import tool
+from dotenv import load_dotenv
 
+load_dotenv()
+
+@tool
 def database_agent(question: dict) -> dict:
     """Can communicate with the KPS internal website to query company specific information.
 
     Args:
         question: the query/question. Just plain text of what information needs to be extracted from the database.
     """
-    # Extract the question from args
-    question = question.get("question", "")
+    db_agent_graph = create_graph()
+    
+    ans = db_agent_graph.invoke({"messages": [{"role": "user", "content": question}]})
 
-    # Now do your normal process:
-    print("Processing question:", question)
-
-    my_graph = create_graph()  # your retrieval or DB logic
-
-    # Store the streamed messages in a list
-    result_messages = []
-    for step in my_graph.stream(
-        {"messages": [{"role": "user", "content": question}]},
-        stream_mode="values",
-    ):
-        step["messages"][-1].pretty_print()
-        result_messages.append(step["messages"][-1])
-
-    # Return a valid dictionary
-    if not result_messages:
-        return {"messages": [AIMessage(content="No response from DB tool.")]}
-
-    return {"messages": result_messages}
+    response = (ans["messages"][-1].content)
+    
+    print(response)
+    
+    return response
+    
 
 tools = [database_agent]
 llm = ChatOpenAI(model = "gpt-4o")
