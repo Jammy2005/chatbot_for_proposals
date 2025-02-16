@@ -33,15 +33,22 @@ config = {"configurable": {"thread_id": "2"}}
 
 print("ALL THE STEPS HAVE BEEN TAKEN TO CREATE THE DB AGENT. sorry for the wait")
 
-def create_graph():
+def create_db_graph():
     graph = create_react_agent(llm, tools, prompt=system, checkpointer = memory)
     return graph
 
 
-# graph = create_graph()
+graph = create_db_graph()
 
-# question = "current team members and their skills"
+question = "current team members and their skills"
 
 # ans = graph.invoke({"messages": [{"role": "user", "content": question}]}, config = config)
 
 # print(ans["messages"][-1].content)
+
+for step in graph.stream(
+    {"messages": [{"role": "user", "content": question}]},
+    stream_mode="values",
+    config = config
+):
+    step["messages"][-1].pretty_print()

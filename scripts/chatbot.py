@@ -9,8 +9,8 @@ from langchain_ollama.llms import OllamaLLM
 load_dotenv()
 
 # Model to use: 
-llm = OllamaLLM(model="deepseek-r1:1.5b")
-# llm = ChatOpenAI(model = "gpt-4o")
+# llm = OllamaLLM(model="deepseek-r1:1.5b")
+llm = ChatOpenAI(model = "gpt-4o")
 
 # Chatbot Node
 def chatbot(state: MessagesState):
@@ -50,13 +50,13 @@ if __name__ == "__main__":
             messages = HumanMessage(content = prompt)
             state["messages"].append(messages)
             
-            messages = graph.invoke({"messages": messages},config)
-            print("Assistant: ", messages['messages'][-1].content)
+            # messages = graph.invoke({"messages": messages},config)
+            # print("Assistant: ", messages['messages'][-1].content)
             
             # if using gpt-4o use this:  
-            # for data, stream_mode in graph.stream(state, config=config, stream_mode="messages"):
-            #     print(data)
-            #     if data.type == "AIMessageChunk":
-            #         print (data.content, end="")
+            for data, stream_mode in graph.stream(state, config=config, stream_mode="messages"):
+                # print(data)
+                if data.type == "AIMessageChunk":
+                    print (data.content, end="")
             
             

@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.graph import MessagesState
-from chat.chatbot_utils import create_graph
+from chatbot_utils import create_db_graph
 from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
@@ -44,7 +44,7 @@ def database_agent(question: str) -> str:
     - If no relevant data is found, it should return a helpful message.
     - If the query is malformed or unauthorized, it should return an error.
     """
-    db_agent_graph = create_graph()
+    db_agent_graph = create_db_graph()
     
     config = {"configurable": {"thread_id": "2"}}
     
@@ -73,14 +73,10 @@ builder.add_edge("tools", "assistant")
 graph = builder.compile()
 sys_msg = SystemMessage(content = "You are KPS Assistant, a virtual employee support agent at KPS (KAKA Processing Systems). Your primary role is to assist employees with their queries using your general knowledge and company-specific data. General Queries: Answer based on your knowledge and reasoning. Company-Specific Queries: If the required information is specific to KPS and not available in your knowledge base, use the Database Agent to retrieve it. Database Agent Role: The Database Agent can translate natural language queries into SQL, execute them, and return relevant company data. Collaboration: You should determine when a query requires company data and coordinate with the Database Agent to fetch relevant results. Response Format: Provide clear, concise, and professional answers while ensuring accuracy. Fallback Handling: If the information is not in the database or outside your expertise, inform the user politely and suggest alternative steps. Security Considerations: Only retrieve non-sensitive company data and ensure database queries are relevant and efficient. Your mission: Act as a knowledgeable, helpful, and proactive assistant to KPS employees, ensuring smooth and efficient interactions.")
 
-messages = [HumanMessage(content="who do u work for?")]
+messages = [HumanMessage(content="how many developers KPS presently has?")]
 
 messages = graph.invoke({"messages": messages})
 
 for m in messages['messages']:
     m.pretty_print()
     # pass
-    
-def create_graph():
-    graph = create_react_agent(llm, tools, prompt=system, checkpointer = memory)
-    return graph

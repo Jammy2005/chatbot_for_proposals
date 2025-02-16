@@ -1,53 +1,62 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.graph import MessagesState
-from chat.chatbot_utils import create_graph
+from database_agent import create_db_graph
 from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.tools import tool
+from dotenv import load_dotenv
+from langgraph.prebuilt import create_react_agent
 
-# class State(MessagesState):
-#     db_results: list[str]
-    
-# def database_agent(args: dict) -> dict:
-#     # Extract the question from args
-#     question = args.get("question", "")
+load_dotenv()
 
-#     # Now do your normal process:
-#     print("Processing question:", question)
+@tool
+def database_agent(question: str) -> str:
+    """Executes a database query based on natural language input.
 
-#     my_graph = create_graph()  # your retrieval or DB logic
+    This function translates user queries into SQL, retrieves relevant 
+    company-specific information, and returns it as natural language.
 
-#     # Store the streamed messages in a list
-#     result_messages = []
-#     for step in my_graph.stream(
-#         {"messages": [{"role": "user", "content": question}]},
-#         stream_mode="values",
-#     ):
-#         step["messages"][-1].pretty_print()
-#         result_messages.append(step["messages"][-1])
+    Parameters:
+    ----------
+    question : str
+        A natural language question related to company-specific information 
+        (e.g., "Who worked on the AI chatbot project?").
 
-#     # Return a valid dictionary
-#     if not result_messages:
-#         return {"messages": [AIMessage(content="No response from DB tool.")]}
+    Returns:
+    -------
+    response: str
+        A natural langauge response of the relevent content qeured from the database
+        (e.g., "Ayesha Khan worked on the AI chatbot project.")
+        
 
-#     return {"messages": result_messages}
-def multiply(a: int, b: int) -> int:
-    """Multiply a and b.
+    Example Usage:
+    --------------
+    >>> database_agent("List all active projects in 2024")
+    {
+        "No projects are active in 2024."
+    }
 
-    Args:
-        a: first int
-        b: second int
+    Notes:
+    ------
+    - The function should **only** execute valid, relevant queries.
+    - If no relevant data is found, it should return a helpful message.
+    - If the query is malformed or unauthorized, it should return an error.
     """
-    return a * b
+    db_agent_graph = create_db_graph()
+    
+    config = {"configurable": {"thread_id": "2"}}
+    
+    ans = db_agent_graph.invoke({"messages": [{"role": "user", "content": question}]}, config = config)
 
-
-
-tools = [multiply]#[database_agent]
+    response = (ans["messages"][-1].content)
+    
+    return response
+    
+tools = [database_agent]
 llm = ChatOpenAI(model = "gpt-4o")
 llm_with_tools = llm.bind_tools(tools)
-
-sys_msg = SystemMessage(content = "5 into 9")
 
 def assistant(state: MessagesState):
     return {"messages" : llm_with_tools.invoke([sys_msg] + state["messages"])}
@@ -63,28 +72,41 @@ builder.add_edge("tools", "assistant")
 
 graph = builder.compile()
 
-messages = [HumanMessage(content="I am working on a project that requires making an RGB game. It is a three week long project. the game will have ai characters too, that have reasoning capabilities. can u pls give me a time line and plan aswell as suggest who i should allocate to this project?")]
+sys_msg = SystemMessage(content=r"""
+You are KPS Assistant, a virtual employee support agent at KPS (KAKA Processing Systems). 
+
+Your primary role is to assist employees with their queries using your general knowledge and company-specific data.
+
+### General Queries:
+- Answer based on your knowledge and reasoning.
+
+### Company-Specific Queries:
+- If the required information is specific to KPS and not available in your knowledge base, use the Database Agent to retrieve it.
+
+### Database Agent Role:
+- The Database Agent can translate natural language queries into SQL, execute them, and return relevant company data.
+
+### Collaboration:
+- Determine when a query requires company data and coordinate with the Database Agent to fetch relevant results.
+
+### Response Format:
+- Provide clear, concise, and professional answers while ensuring accuracy.
+
+### Fallback Handling:
+- If the information is not in the database or outside your expertise, inform the user politely and suggest alternative steps.
+
+### Security Considerations:
+- Only retrieve non-sensitive company data.
+- Ensure database queries are relevant and efficient.
+
+**Your mission:** 
+Act as a knowledgeable, helpful, and proactive assistant to KPS employees, ensuring smooth and efficient interactions.
+""")
+
+messages = [HumanMessage(content="what is the name of the company? ")]
 
 messages = graph.invoke({"messages": messages})
 
 for m in messages['messages']:
     m.pretty_print()
     # pass
-    
-# memory = MemorySaver()
-# memory_graph = builder.compile(checkpointer = memory)
-
-# config = {"configurable": {"thread_id": "1"}}
-
-# messages = [HumanMessage(content = "My names James")]
-
-# messages = memory_graph.invoke({"messages": messages},config)
-# for m in messages['messages']:
-#     # m.pretty_print()
-#     pass
-    
-# messages = [HumanMessage(content="Whats my name?")]
-# messages = memory_graph.invoke({"messages": messages}, config)
-# for m in messages['messages']:
-#     # m.pretty_print()
-#     pass
